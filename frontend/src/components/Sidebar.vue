@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 defineProps<{
   collapsed: boolean
@@ -10,6 +11,8 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
+const token = ref(localStorage.getItem('token'))
 
 const navItems = [
   { label: '个人信息', icon: 'User', path: '/' },
@@ -20,6 +23,13 @@ const navItems = [
 function isActive(path: string) {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
+}
+
+function handleLogout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  token.value = null
+  router.push('/login')
 }
 </script>
 
@@ -48,6 +58,27 @@ function isActive(path: string) {
         <span v-if="!collapsed" class="nav-label">{{ item.label }}</span>
       </router-link>
     </nav>
+
+    <div class="sidebar-footer">
+      <button
+        v-if="token"
+        class="nav-item logout-btn"
+        @click="handleLogout"
+        :title="collapsed ? '退出登录' : undefined"
+      >
+        <el-icon :size="20"><SwitchButton /></el-icon>
+        <span v-if="!collapsed" class="nav-label">退出登录</span>
+      </button>
+      <router-link
+        v-else
+        to="/login"
+        class="nav-item"
+        :title="collapsed ? '登录' : undefined"
+      >
+        <el-icon :size="20"><User /></el-icon>
+        <span v-if="!collapsed" class="nav-label">登录</span>
+      </router-link>
+    </div>
   </aside>
 </template>
 
@@ -112,6 +143,11 @@ function isActive(path: string) {
   gap: 4px;
 }
 
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid #2a2a2a;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -136,5 +172,13 @@ function isActive(path: string) {
 
 .nav-label {
   font-size: 14px;
+}
+
+.logout-btn {
+  width: 100%;
+}
+
+.logout-btn:hover {
+  color: #ff6b6b;
 }
 </style>

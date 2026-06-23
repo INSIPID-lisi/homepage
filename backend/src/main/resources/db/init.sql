@@ -40,3 +40,11 @@ CREATE TABLE IF NOT EXISTS anime_review (
     created_time DATETIME     NOT NULL       COMMENT '评价时间',
     deleted      TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否删除'
 ) COMMENT '番剧评价';
+
+CREATE TABLE IF NOT EXISTS users (
+    id           BIGINT       AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    email        VARCHAR(100) UNIQUE NOT NULL COMMENT '登录邮箱',
+    password     VARCHAR(255) NOT NULL       COMMENT '密码(加密)',
+    role         VARCHAR(20)  DEFAULT 'USER' COMMENT 'ADMIN 或 USER',
+    created_time DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) COMMENT '用户';

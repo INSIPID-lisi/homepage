@@ -12,6 +12,12 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: insipidknight@163.com
+    password: ${hp.mail.password}
+
   datasource:
     url: ${hp.db.url}
     username: ${hp.db.username}
@@ -22,9 +28,6 @@ app:
   upload:
     path: homepage/images
     url-prefix: /uploads
-  security:
-    admin-ips: 127.0.0.1,0:0:0:0:0:0:0:1,::1
-
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

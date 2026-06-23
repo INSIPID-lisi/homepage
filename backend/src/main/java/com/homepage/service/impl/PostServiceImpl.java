@@ -5,24 +5,18 @@ import com.homepage.exception.BusinessException;
 import com.homepage.exception.ErrorCode;
 import com.homepage.mapper.PostMapper;
 import com.homepage.service.PostService;
+import com.homepage.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostMapper postMapper;
-
-    @Value("${app.security.admin-ips}")
-    private String adminIps;
 
     @Override
     public List<Post> list(String type, String search) {
@@ -52,7 +46,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void create(Post post) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         post.setId(null);
         post.setPinned(post.getPinned() != null && post.getPinned());
         post.setDeleted(false);
@@ -63,7 +57,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void update(Long id, Post post) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         Post existing = getById(id);
         if (post.getTitle() != null) existing.setTitle(post.getTitle());
         if (post.getContent() != null) existing.setContent(post.getContent());
@@ -75,21 +69,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void delete(Long id) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         getById(id);
         postMapper.softDelete(id);
-    }
-
-    private void checkAdminIp() {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attrs == null) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "no request context");
-        }
-
-        String ip = attrs.getRequest().getRemoteAddr();
-        Set<String> allowed = Set.of(adminIps.split(","));
-        if (!allowed.contains(ip) && !allowed.contains("::ffff:" + ip)) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "forbidden: ip not allowed");
-        }
     }
 }

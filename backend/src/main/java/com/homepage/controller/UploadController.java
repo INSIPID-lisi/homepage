@@ -3,7 +3,7 @@ package com.homepage.controller;
 import com.homepage.dto.Result;
 import com.homepage.exception.BusinessException;
 import com.homepage.exception.ErrorCode;
-import jakarta.servlet.http.HttpServletRequest;
+import com.homepage.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
@@ -21,16 +21,9 @@ public class UploadController {
     @Value("${app.upload.path}")
     private String uploadPath;
 
-    @Value("${app.security.admin-ips}")
-    private String adminIps;
-
     @PostMapping("/upload")
-    public Result<String> upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        Set<String> allowed = Set.of(adminIps.split(","));
-        if (!allowed.contains(ip) && !allowed.contains("::ffff:" + ip)) {
-            return Result.error(ErrorCode.BAD_REQUEST, "forbidden: ip not allowed");
-        }
+    public Result<String> upload(@RequestParam("file") MultipartFile file) {
+        SecurityUtil.requireAdmin();
 
         String ext = getName(file);
 
