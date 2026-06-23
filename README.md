@@ -1,6 +1,6 @@
 # Homepage
 
-个人主页项目，展示个人信息、社交链接、博客帖子以及追番记录。前后端分离架构。
+个人主页项目，展示个人信息、社交链接、博客帖子以及追番记录。前后端分离架构，带 JWT 认证和邮箱验证。
 
 ## 技术栈
 
@@ -11,13 +11,17 @@
 | 数据库 | MySQL 8 |
 | UI 库 | Element Plus 2 + @element-plus/icons-vue |
 | 构建 | Maven (后端) / Vite (前端) |
+| 认证 | JWT (jjwt 0.12.6) + BCrypt |
+| 邮件 | Jakarta Mail (spring-boot-starter-mail) |
 
 ## 功能模块
 
 - **个人信息展示** — 头像、名称、个人简介、社交链接
 - **帖子管理** — 分类（正规推文 / 碎碎念）、模糊搜索、置顶
 - **追番记录** — 番剧封面网格展示、评价管理、番剧卡片上传
-- **后台管理** — IP 白名单鉴权（管理员增删改操作）
+- **用户认证** — 邮箱注册/登录、密码登录、验证码登录、JWT 鉴权
+- **角色管理** — 第一位注册的账号自动成为管理员，其余为普通用户
+- **后台管理** — 管理员增删改操作（JWT role 校验）
 
 ## 快速开始
 
@@ -36,9 +40,9 @@ USE homepage_db;
 SOURCE backend/src/main/resources/db/init.sql;
 ```
 
-### 2. 配置数据库
+### 2. 配置数据库和邮件
 
-编辑 `backend/src/main/resources/application-dev.yml`，填入数据库连接信息：
+编辑 `backend/src/main/resources/application-dev.yml`，填入数据库连接信息和邮件授权码：
 
 ```yaml
 hp:
@@ -46,7 +50,11 @@ hp:
     url: jdbc:mysql://localhost:3306/homepage_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: your_password
+  mail:
+    password: your_email_authorization_code
 ```
+
+邮件使用 163 SMTP（smtp.163.com:465），需在 163 邮箱设置中开启 POP3/SMTP 服务并生成授权码。
 
 ### 3. 启动后端
 
@@ -86,11 +94,14 @@ homepage/
 │   └── src/main/java/com/homepage/
 │       ├── config/                   # 全局配置
 │       │   ├── GlobalExceptionHandler.java  # 全局异常处理
+│       │   ├── JwtAuthenticationFilter.java # JWT 认证过滤器
+│       │   ├── MailConfig.java              # JavaMail 配置 (SSL/TLSv1.2)
 │       │   ├── SecurityConfig.java          # Spring Security 配置
 │       │   └── WebConfig.java              # CORS + 静态资源映射
 │       ├── controller/               # REST 控制器
 │       │   ├── AdminController.java
 │       │   ├── AnimeController.java
+│       │   ├── AuthController.java   # 登录/注册/验证码
 │       │   ├── PostController.java
 │       │   ├── ProfileController.java
 │       │   └── UploadController.java
@@ -103,31 +114,40 @@ homepage/
 │       │   ├── AnimeReview.java
 │       │   ├── Post.java
 │       │   ├── SocialLink.java
+│       │   ├── User.java
 │       │   └── UserProfile.java
 │       ├── exception/                # 异常体系
 │       │   ├── BusinessException.java
 │       │   └── ErrorCode.java
 │       ├── mapper/                   # MyBatis-Plus Mapper
 │       ├── service/                  # 业务接口
-│       └── service/impl/             # 业务实现
+│       │   ├── AuthService.java
+│       │   ├── EmailService.java
+│       │   └── ...
+│       ├── service/impl/             # 业务实现
+│       ├── util/                     # 工具类
+│       │   ├── JwtUtil.java          # JWT 生成/解析
+│       │   └── SecurityUtil.java     # 当前用户/管理员校验
+│       └── HomepageApplication.java
 │
 ├── frontend/                         # Vue 3 前端
 │   └── src/
 │       ├── api/index.ts              # Axios 请求封装 + API 函数
 │       ├── components/               # 公共组件
 │       │   ├── ProfileCard.vue
-│       │   ├── Sidebar.vue
+│       │   ├── Sidebar.vue          # 含登录/登出按钮
 │       │   └── SocialLinks.vue
 │       ├── layouts/DefaultLayout.vue # 整体布局
-│       ├── router/index.ts           # 路由配置
+│       ├── router/index.ts           # 路由配置（含 /login）
 │       ├── store/index.ts            # Pinia 状态管理
-│       ├── styles/main.css           # 全局样式 + Element Plus 暗色主题覆盖
+│       ├── styles/main.css           # 全局样式 + Element Plus 暗色主题
 │       └── views/                    # 页面
-│           ├── HomeView.vue          # 首页
-│           ├── PostsView.vue         # 帖子列表
-│           ├── PostDetailView.vue    # 帖子详情
-│           ├── AnimeListView.vue     # 追番列表
-│           └── AnimeDetailView.vue   # 番剧详情
+│           ├── HomeView.vue
+│           ├── LoginView.vue         # 登录/注册页
+│           ├── PostsView.vue
+│           ├── PostDetailView.vue
+│           ├── AnimeListView.vue
+│           └── AnimeDetailView.vue
 ```
 
 ## API 概览
@@ -138,19 +158,23 @@ homepage/
 | GET | /api/social-links | 获取社交链接 |
 | GET | /api/posts | 帖子列表（支持 `?type=` 和 `?search=`） |
 | GET | /api/posts/{id} | 帖子详情 |
-| POST | /api/posts | 创建帖子 |
-| PUT | /api/posts/{id} | 修改帖子 |
-| DELETE | /api/posts/{id} | 删除帖子 |
+| POST | /api/posts | 创建帖子（管理员） |
+| PUT | /api/posts/{id} | 修改帖子（管理员） |
+| DELETE | /api/posts/{id} | 删除帖子（管理员） |
 | GET | /api/anime | 番剧列表（含最新评价） |
 | GET | /api/anime/{id} | 番剧详情（含所有评价） |
-| POST | /api/anime | 添加番剧 |
-| PUT | /api/anime/{id} | 修改番剧 |
-| DELETE | /api/anime/{id} | 删除番剧 |
-| POST | /api/anime/{id}/reviews | 添加评价 |
-| PUT | /api/anime/{id}/reviews/{reviewId} | 修改评价 |
-| DELETE | /api/anime/{id}/reviews/{reviewId} | 删除评价 |
-| POST | /api/upload | 上传图片（MultipartFile） |
-| GET | /api/admin/check | 检查是否为管理员 IP |
+| POST | /api/anime | 添加番剧（管理员） |
+| PUT | /api/anime/{id} | 修改番剧（管理员） |
+| DELETE | /api/anime/{id} | 删除番剧（管理员） |
+| POST | /api/anime/{id}/reviews | 添加评价（管理员） |
+| PUT | /api/anime/{id}/reviews/{reviewId} | 修改评价（管理员） |
+| DELETE | /api/anime/{id}/reviews/{reviewId} | 删除评价（管理员） |
+| POST | /api/upload | 上传图片（管理员） |
+| POST | /api/auth/register | 注册（邮箱+密码+验证码） |
+| POST | /api/auth/login | 密码登录 |
+| POST | /api/auth/login-by-code | 验证码登录 |
+| POST | /api/auth/send-code | 发送邮箱验证码 |
+| GET | /api/admin/check | 检查是否为管理员 |
 
 所有响应格式统一为：
 
@@ -168,5 +192,17 @@ homepage/
 
 - `app.upload.path` — 图片上传路径（默认 `homepage/images`，相对于用户目录）
 - `app.upload.url-prefix` — 图片访问路径前缀（默认 `/uploads`）
-- `app.security.admin-ips` — 管理员 IP 白名单，逗号分隔
 - `spring.servlet.multipart.max-file-size` — 单文件上传上限（默认 `10MB`）
+- `spring.mail` — 邮件服务器配置（163 SMTP，详见 application-dev.yml）
+
+JWT 配置（`application-dev.yml`）：
+
+- `app.jwt.secret` — JWT 签名密钥（256位+）
+- `app.jwt.expiration` — Token 过期时间（默认 86400000ms = 24h）
+
+## 认证说明
+
+- 所有 `/api/auth/**` 和 `/uploads/**` 无需认证
+- 其他 `/api/**` 接口允许匿名访问，但增删改操作需管理员角色
+- 第一位注册的账号自动成为管理员，后续注册的均为普通用户
+- 登录后 JWT 存入 `localStorage`，请求时通过 `Authorization: Bearer <token>` 携带
