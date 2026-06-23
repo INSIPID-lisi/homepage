@@ -8,15 +8,12 @@ import com.homepage.exception.ErrorCode;
 import com.homepage.mapper.AnimeMapper;
 import com.homepage.mapper.AnimeReviewMapper;
 import com.homepage.service.AnimeService;
+import com.homepage.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +21,6 @@ public class AnimeServiceImpl implements AnimeService {
 
     private final AnimeMapper animeMapper;
     private final AnimeReviewMapper animeReviewMapper;
-
-    @Value("${app.security.admin-ips}")
-    private String adminIps;
 
     @Override
     public List<AnimeVO> list() {
@@ -50,7 +44,7 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void create(Anime anime) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         anime.setId(null);
         anime.setDeleted(false);
         anime.setCreatedAt(LocalDateTime.now());
@@ -60,7 +54,7 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void update(Long id, Anime anime) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         Anime existing = getById(id);
         if (anime.getName() != null) existing.setName(anime.getName());
         if (anime.getCoverUrl() != null) existing.setCoverUrl(anime.getCoverUrl());
@@ -71,14 +65,14 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void delete(Long id) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         getById(id);
         animeMapper.softDelete(id);
     }
 
     @Override
     public void createReview(Long animeId, AnimeReview review) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         getById(animeId);
         review.setId(null);
         review.setAnimeId(animeId);
@@ -89,7 +83,7 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void updateReview(Long reviewId, AnimeReview review) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         AnimeReview existing = animeReviewMapper.selectById(reviewId);
         if (existing == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "review not found");
@@ -100,23 +94,11 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void deleteReview(Long reviewId) {
-        checkAdminIp();
+        SecurityUtil.requireAdmin();
         AnimeReview existing = animeReviewMapper.selectById(reviewId);
         if (existing == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "review not found");
         }
         animeReviewMapper.softDelete(reviewId);
-    }
-
-    private void checkAdminIp() {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attrs == null) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "no request context");
-        }
-        String ip = attrs.getRequest().getRemoteAddr();
-        Set<String> allowed = Set.of(adminIps.split(","));
-        if (!allowed.contains(ip) && !allowed.contains("::ffff:" + ip)) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "forbidden: ip not allowed");
-        }
     }
 }

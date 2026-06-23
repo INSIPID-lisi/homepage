@@ -35,6 +35,16 @@ export interface Post {
   updatedAt: string
 }
 
+request.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  }
+)
+
 request.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -138,6 +148,28 @@ export function uploadFile(file: File) {
   const formData = new FormData()
   formData.append('file', file)
   return request.post<Result<string>>('/upload', formData)
+}
+
+export interface AuthResponse {
+  token: string
+  email: string
+  role: string
+}
+
+export function login(data: { email: string; password: string }) {
+  return request.post<Result<AuthResponse>>('/auth/login', data)
+}
+
+export function register(data: { email: string; password: string; code: string }) {
+  return request.post<Result<AuthResponse>>('/auth/register', data)
+}
+
+export function loginByCode(data: { email: string; code: string }) {
+  return request.post<Result<AuthResponse>>('/auth/login-code', data)
+}
+
+export function sendCode(data: { email: string }) {
+  return request.post<Result<null>>('/auth/code', data)
 }
 
 export function checkAdmin() {
