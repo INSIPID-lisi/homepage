@@ -176,4 +176,12 @@ export function checkAdmin() {
   return request.get<Result<boolean>>('/admin/check')
 }
 
+export function updateProfile(data: { name: string; avatar?: string; bio?: string }) {
+  return request.put<Result<null>>('/profile', data)
+}
+
+export function updateSocialLinks(data: { platform: string; url: string; icon?: string }[]) {
+  return request.put<Result<null>>('/social-links', data)
+}
+
 export default request

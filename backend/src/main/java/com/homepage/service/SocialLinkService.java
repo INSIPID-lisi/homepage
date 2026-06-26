@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface SocialLinkService {
     List<SocialLink> list();
+    void updateBatch(List<SocialLink> links);
 }

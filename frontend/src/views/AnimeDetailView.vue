@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { AnimeDetail, AnimeReview, Result } from '@/api'
 import { getAnimeDetail, createAnimeReview, updateAnimeReview, deleteAnimeReview, updateAnime, uploadFile, checkAdmin } from '@/api'
+import { getImageUrl } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -38,11 +39,7 @@ onMounted(async () => {
   }
 })
 
-function getCoverUrl(url: string | null) {
-  if (!url) return ''
-  if (url.startsWith('http')) return url
-  return '/uploads/' + url
-}
+
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr)
@@ -181,7 +178,7 @@ async function handleEditAnime() {
         <div class="anime-cover">
           <img
             v-if="anime.coverUrl"
-            :src="getCoverUrl(anime.coverUrl)"
+            :src="getImageUrl(anime.coverUrl)"
             :alt="anime.name"
           />
           <div v-else class="cover-placeholder">
@@ -252,7 +249,7 @@ async function handleEditAnime() {
         <el-form-item label="封面图">
           <div class="cover-upload">
             <div v-if="editAnimeForm.coverUrl" class="cover-preview">
-              <img :src="getCoverUrl(editAnimeForm.coverUrl)" alt="封面预览" />
+              <img :src="getImageUrl(editAnimeForm.coverUrl)" alt="封面预览" />
               <button class="cover-remove" @click="removeCover" title="移除">
                 <el-icon :size="16"><Close /></el-icon>
               </button>
@@ -288,14 +285,6 @@ async function handleEditAnime() {
   padding: 32px 40px;
   max-width: 720px;
   margin: 0 auto;
-}
-
-.loading,
-.error {
-  text-align: center;
-  color: #666;
-  font-size: 15px;
-  padding: 48px 0;
 }
 
 .detail-topbar {

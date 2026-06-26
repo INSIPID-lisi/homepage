@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { UserProfile } from '@/api'
+import { getImageUrl } from '@/utils'
 
 defineProps<{
   profile: UserProfile | null
@@ -11,7 +12,7 @@ defineProps<{
     <div class="avatar-wrapper">
       <img
         v-if="profile.avatar"
-        :src="profile.avatar.startsWith('http') ? profile.avatar : profile.avatar.startsWith('/uploads/') ? profile.avatar : '/uploads/' + profile.avatar"
+        :src="getImageUrl(profile.avatar)"
         :alt="profile.name"
         class="avatar"
       />

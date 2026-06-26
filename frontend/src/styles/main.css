@@ -214,3 +214,12 @@ button {
 .el-message {
   border-radius: 8px;
 }
+
+.loading,
+.error,
+.empty {
+  text-align: center;
+  color: #666;
+  font-size: 15px;
+  padding: 48px 0;
+}

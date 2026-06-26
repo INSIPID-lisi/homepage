@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Anime, Result } from '@/api'
 import { getAnimeList, createAnime, deleteAnime, uploadFile, checkAdmin } from '@/api'
+import FabButton from '@/components/FabButton.vue'
+import { getImageUrl } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -95,11 +97,7 @@ async function handleDelete(id: number, e: Event) {
   }
 }
 
-function getCoverUrl(url: string | null) {
-  if (!url) return ''
-  if (url.startsWith('http')) return url
-  return '/uploads/' + url
-}
+
 </script>
 
 <template>
@@ -117,7 +115,7 @@ function getCoverUrl(url: string | null) {
         <div class="cover-wrapper">
           <img
             v-if="anime.coverUrl"
-            :src="getCoverUrl(anime.coverUrl)"
+            :src="getImageUrl(anime.coverUrl)"
             :alt="anime.name"
             class="cover-img"
           />
@@ -140,9 +138,7 @@ function getCoverUrl(url: string | null) {
       </div>
     </div>
 
-    <button v-if="isAdmin" class="fab" @click="showCreate = true">
-      <el-icon :size="28"><Plus /></el-icon>
-    </button>
+    <FabButton v-if="isAdmin" @click="showCreate = true" />
 
     <el-dialog v-model="showCreate" title="添加番剧" width="480px" top="15vh">
       <el-form :model="createForm" label-position="top">
@@ -152,7 +148,7 @@ function getCoverUrl(url: string | null) {
         <el-form-item label="封面图">
           <div class="cover-upload">
             <div v-if="createForm.coverUrl" class="cover-preview">
-              <img :src="getCoverUrl(createForm.coverUrl)" alt="封面预览" />
+              <img :src="getImageUrl(createForm.coverUrl)" alt="封面预览" />
               <button class="cover-remove" @click="removeCover" title="移除">
                 <el-icon :size="16"><Close /></el-icon>
               </button>
@@ -188,15 +184,6 @@ function getCoverUrl(url: string | null) {
   padding: 24px 32px;
   max-width: 960px;
   margin: 0 auto;
-}
-
-.loading,
-.error,
-.empty {
-  text-align: center;
-  color: #666;
-  font-size: 15px;
-  padding: 48px 0;
 }
 
 .anime-grid {
@@ -288,28 +275,6 @@ function getCoverUrl(url: string | null) {
 
 .delete-btn:hover {
   background-color: rgba(255, 77, 79, 0.2);
-}
-
-.fab {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background-color: #2a2a2a;
-  color: #d4d4d4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #3a3a3a;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  z-index: 50;
-}
-
-.fab:hover {
-  background-color: #3a3a3a;
 }
 
 .cover-upload {

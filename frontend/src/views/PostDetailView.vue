@@ -160,14 +160,6 @@ function formatDate(dateStr: string) {
   margin: 0 auto;
 }
 
-.loading,
-.error {
-  text-align: center;
-  color: #666;
-  font-size: 15px;
-  padding: 48px 0;
-}
-
 .detail-topbar {
   display: flex;
   justify-content: space-between;

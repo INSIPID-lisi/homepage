@@ -4,4 +4,5 @@ import com.homepage.entity.UserProfile;
 
 public interface UserProfileService {
     UserProfile getProfile();
+    void saveOrUpdateProfile(UserProfile profile);
 }

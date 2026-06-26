@@ -6,9 +6,7 @@ import com.homepage.entity.UserProfile;
 import com.homepage.service.SocialLinkService;
 import com.homepage.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,5 +26,17 @@ public class ProfileController {
     @GetMapping("/social-links")
     public Result<List<SocialLink>> getSocialLinks() {
         return Result.success(socialLinkService.list());
+    }
+
+    @PutMapping("/profile")
+    public Result<Void> updateProfile(@RequestBody UserProfile profile) {
+        userProfileService.saveOrUpdateProfile(profile);
+        return Result.success(null);
+    }
+
+    @PutMapping("/social-links")
+    public Result<Void> updateSocialLinks(@RequestBody List<SocialLink> links) {
+        socialLinkService.updateBatch(links);
+        return Result.success(null);
     }
 }
