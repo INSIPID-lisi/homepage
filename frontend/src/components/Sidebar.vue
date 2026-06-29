@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { navItems } from '@/navigation'
 
 defineProps<{
   collapsed: boolean
@@ -13,12 +14,6 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const token = ref(localStorage.getItem('token'))
-
-const navItems = [
-  { label: '个人信息', icon: 'User', path: '/' },
-  { label: '一些帖子', icon: 'Document', path: '/posts' },
-  { label: '追番记录', icon: 'Film', path: '/anime' }
-]
 
 function isActive(path: string) {
   if (path === '/') return route.path === '/'

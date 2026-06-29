@@ -16,12 +16,14 @@
 
 ## 功能模块
 
+- **导航系统** — 扇形转盘导航（拖拽旋转 / 点击对齐）+ 弹出侧栏 + 长按固定 + 键盘快捷键 Alt+1~4
 - **个人信息展示** — 头像、名称、个人简介、社交链接
 - **帖子管理** — 分类（正规推文 / 碎碎念）、模糊搜索、置顶
 - **追番记录** — 番剧封面网格展示、评价管理、番剧卡片上传
 - **用户认证** — 邮箱注册/登录、密码登录、验证码登录、JWT 鉴权
 - **角色管理** — 第一位注册的账号自动成为管理员，其余为普通用户
 - **后台管理** — 管理员增删改操作（JWT role 校验）
+- **设置页面** — 切换账号、退出登录
 
 ## 快速开始
 
@@ -134,11 +136,16 @@ homepage/
 │   └── src/
 │       ├── api/index.ts              # Axios 请求封装 + API 函数
 │       ├── components/               # 公共组件
+│       │   ├── NavDial.vue           # 扇形转盘导航
 │       │   ├── ProfileCard.vue
-│       │   ├── Sidebar.vue          # 含登录/登出按钮
+│       │   ├── Sidebar.vue
+│       │   ├── SidebarPopup.vue      # 弹出侧栏
 │       │   └── SocialLinks.vue
-│       ├── layouts/DefaultLayout.vue # 整体布局
-│       ├── router/index.ts           # 路由配置（含 /login）
+│       ├── composables/
+│       │   └── useKeyboardShortcuts.ts  # 键盘快捷键 (Alt+1~4)
+│       ├── layouts/DefaultLayout.vue # 整体布局（含转盘/侧栏联动）
+│       ├── navigation.ts             # 导航项共享常量
+│       ├── router/index.ts           # 路由配置（含 /login、/settings）
 │       ├── store/index.ts            # Pinia 状态管理
 │       ├── styles/main.css           # 全局样式 + Element Plus 暗色主题
 │       └── views/                    # 页面
@@ -147,7 +154,8 @@ homepage/
 │           ├── PostsView.vue
 │           ├── PostDetailView.vue
 │           ├── AnimeListView.vue
-│           └── AnimeDetailView.vue
+│           ├── AnimeDetailView.vue
+│           └── SettingsView.vue      # 切换账号 / 退出登录
 ```
 
 ## API 概览
@@ -155,7 +163,9 @@ homepage/
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /api/profile | 获取个人信息 |
+| PUT | /api/profile | 修改个人信息（管理员） |
 | GET | /api/social-links | 获取社交链接 |
+| PUT | /api/social-links | 修改社交链接（管理员） |
 | GET | /api/posts | 帖子列表（支持 `?type=` 和 `?search=`） |
 | GET | /api/posts/{id} | 帖子详情 |
 | POST | /api/posts | 创建帖子（管理员） |

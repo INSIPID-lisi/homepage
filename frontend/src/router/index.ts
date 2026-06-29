@@ -37,6 +37,11 @@ const router = createRouter({
           path: 'anime/:id',
           name: 'anime-detail',
           component: () => import('@/views/AnimeDetailView.vue')
+        },
+        {
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/SettingsView.vue')
         }
       ]
     }
