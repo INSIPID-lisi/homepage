@@ -13,12 +13,15 @@ const isLongPress = ref(false)
 const isSnapping = ref(false)
 const dragStartX = ref(0)
 const dragStartY = ref(0)
-const dragStartRotation = ref(0)
-const startAngle = ref(0)
 const longPressTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const expandTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const snapTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const dialEl = ref<HTMLElement | null>(null)
+
+/** 持续追踪上一帧鼠标相对圆心的角度，用于处理 atan2 ±180° 绕回 */
+let lastAngle = 0
+/** 拖拽松手后拦截浏览器派发的 click 事件，防止覆盖导航目标 */
+let recentDragEnd = false
 
 const emit = defineEmits<{
   'long-press': []
@@ -75,11 +78,8 @@ function startDrag(clientX: number, clientY: number) {
   isDragging.value = false
   isLongPress.value = false
 
-  const center = getDialCenter()
-  startAngle.value = angleFromCenter(center.x, center.y, clientX, clientY)
   dragStartX.value = clientX
   dragStartY.value = clientY
-  dragStartRotation.value = rotation.value
 
   longPressTimer.value = setTimeout(() => {
     isLongPress.value = true
@@ -102,12 +102,18 @@ function onDrag(clientX: number, clientY: number) {
         clearTimeout(longPressTimer.value)
         longPressTimer.value = null
       }
+      const center = getDialCenter()
+      lastAngle = angleFromCenter(center.x, center.y, clientX, clientY)
     }
 
     const center = getDialCenter()
     const currentAngle = angleFromCenter(center.x, center.y, clientX, clientY)
-    const delta = currentAngle - startAngle.value
-    rotation.value = dragStartRotation.value + delta
+    let delta = currentAngle - lastAngle
+    // 处理 atan2 跨 ±180° 边界时的角度绕回
+    if (delta > 180) delta -= 360
+    else if (delta < -180) delta += 360
+    rotation.value += delta
+    lastAngle = currentAngle
   }
 }
 
@@ -118,9 +124,12 @@ function endDrag() {
   }
 
   if (isDragging.value) {
-    snapToItem(activeIndex.value)
-    navigateTo(activeIndex.value)
+    const targetIdx = activeIndex.value
+    navigateTo(targetIdx)
     isDragging.value = false
+    snapToItem(targetIdx)
+    recentDragEnd = true
+    requestAnimationFrame(() => { recentDragEnd = false })
   } else if (!isLongPress.value && isExpanded.value) {
     navigateTo(activeIndex.value)
   }
@@ -187,7 +196,7 @@ function onDialTouchStart(e: TouchEvent) {
 }
 
 function handleFanItemClick(index: number) {
-  if (isDragging.value || isLongPress.value) return
+  if (isDragging.value || isLongPress.value || recentDragEnd) return
   snapToItem(index)
   const path = navItems[index].path
   if (route.path !== path) {
@@ -224,7 +233,7 @@ onUnmounted(() => {
     <!-- Rotating assembly: sectors -->
     <div
       class="dial-rotator"
-      :class="{ 'dial-rotator--hidden': !isExpanded }"
+      :class="{ 'dial-rotator--hidden': !isExpanded, 'dial-rotator--no-transition': isDragging }"
       :style="{ transform: 'rotate(' + rotation + 'deg)' }"
     >
       <div
@@ -328,6 +337,14 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
+.dial-rotator--no-transition {
+  transition: none !important;
+}
+.dial-rotator--no-transition .fan-sector__stroke,
+.dial-rotator--no-transition .fan-sector__bg {
+  transition: none !important;
+}
+
 .nav-dial--expanded .dial-rotator {
   opacity: 1;
   transform: rotate(0deg) scale(1);
@@ -350,7 +367,7 @@ onUnmounted(() => {
 .fan-sector__stroke {
   position: absolute;
   inset: 0;
-  clip-path: polygon(0 50%, 100% 5%, 100% 95%);
+  clip-path: polygon(0 50%, 100% -17%, 100% 117%);
   background: rgba(212, 212, 212, 0.25);
   pointer-events: none;
   transition: background 0.25s;
@@ -364,7 +381,7 @@ onUnmounted(() => {
 .fan-sector__bg {
   position: absolute;
   inset: 1.5px;
-  clip-path: polygon(0 50%, 100% 5%, 100% 95%);
+  clip-path: polygon(0 50%, 100% -17%, 100% 117%);
   background: #1a1a1a;
   pointer-events: none;
   transition: background 0.25s;
