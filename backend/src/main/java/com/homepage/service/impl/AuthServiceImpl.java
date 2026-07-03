@@ -1,9 +1,6 @@
 package com.homepage.service.impl;
 
-import com.homepage.dto.AuthResponse;
-import com.homepage.dto.CodeLoginRequest;
-import com.homepage.dto.LoginRequest;
-import com.homepage.dto.RegisterRequest;
+import com.homepage.dto.*;
 import com.homepage.entity.User;
 import com.homepage.exception.BusinessException;
 import com.homepage.exception.ErrorCode;
@@ -11,6 +8,7 @@ import com.homepage.mapper.UserMapper;
 import com.homepage.service.AuthService;
 import com.homepage.service.EmailService;
 import com.homepage.util.JwtUtil;
+import com.homepage.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -113,5 +111,43 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getRole());
+    }
+
+    @Override
+    public void changePassword(PasswordChangeRequest req) {
+        User user = SecurityUtil.getCurrentUser();
+        if (user == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "请先登录");
+        }
+
+        String newPassword = req.getNewPassword();
+        String confirmPassword = req.getConfirmPassword();
+
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "新密码至少6位");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "两次输入的密码不一致");
+        }
+
+        if (req.getOldPassword() != null) {
+            // 模式一：旧密码验证
+            if (!passwordEncoder.matches(req.getOldPassword(), user.getPassword())) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "旧密码错误");
+            }
+        } else if (req.getEmail() != null && req.getCode() != null) {
+            // 模式二：邮箱验证码验证
+            if (!user.getEmail().equals(req.getEmail())) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "邮箱与当前账号不匹配");
+            }
+            if (!emailService.verifyCode(req.getEmail(), req.getCode())) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "验证码错误或已过期");
+            }
+        } else {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "请提供旧密码或邮箱验证码");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.updateById(user);
     }
 }

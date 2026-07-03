@@ -7,7 +7,7 @@ const router = useRouter()
 const route = useRoute()
 
 const isExpanded = ref(false)
-const rotation = ref(0)
+const rotation = ref(75)
 const isDragging = ref(false)
 const isLongPress = ref(false)
 const isSnapping = ref(false)

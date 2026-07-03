@@ -23,7 +23,7 @@
 - **用户认证** — 邮箱注册/登录、密码登录、验证码登录、JWT 鉴权
 - **角色管理** — 第一位注册的账号自动成为管理员，其余为普通用户
 - **后台管理** — 管理员增删改操作（JWT role 校验）
-- **设置页面** — 切换账号、退出登录
+- **设置页面** — 修改密码（旧密码验证 / 邮箱验证码两种模式）、切换账号、退出登录
 
 ## 快速开始
 
@@ -108,8 +108,11 @@ homepage/
 │       │   ├── ProfileController.java
 │       │   └── UploadController.java
 │       ├── dto/                      # 数据传输对象
-│       │   ├── AnimeDetailVO.java
-│       │   ├── AnimeVO.java
+│       │   ├── AuthResponse.java
+│       │   ├── CodeLoginRequest.java
+│       │   ├── LoginRequest.java
+│       │   ├── PasswordChangeRequest.java
+│       │   ├── RegisterRequest.java
 │       │   └── Result.java           # 统一响应包装
 │       ├── entity/                   # 数据实体
 │       │   ├── Anime.java
@@ -123,9 +126,12 @@ homepage/
 │       │   └── ErrorCode.java
 │       ├── mapper/                   # MyBatis-Plus Mapper
 │       ├── service/                  # 业务接口
+│       │   ├── AnimeService.java
 │       │   ├── AuthService.java
 │       │   ├── EmailService.java
-│       │   └── ...
+│       │   ├── PostService.java
+│       │   ├── SocialLinkService.java
+│       │   └── UserProfileService.java
 │       ├── service/impl/             # 业务实现
 │       ├── util/                     # 工具类
 │       │   ├── JwtUtil.java          # JWT 生成/解析
@@ -182,8 +188,10 @@ homepage/
 | POST | /api/upload | 上传图片（管理员） |
 | POST | /api/auth/register | 注册（邮箱+密码+验证码） |
 | POST | /api/auth/login | 密码登录 |
-| POST | /api/auth/login-by-code | 验证码登录 |
-| POST | /api/auth/send-code | 发送邮箱验证码 |
+| POST | /api/auth/login-code | 验证码登录 |
+| POST | /api/auth/code | 发送邮箱验证码 |
+| PUT | /api/auth/password | 修改密码（旧密码或邮箱验证码） |
+| GET | /api/auth/me | 获取当前用户信息 |
 | GET | /api/admin/check | 检查是否为管理员 |
 
 所有响应格式统一为：

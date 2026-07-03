@@ -35,6 +35,12 @@ public class AuthController {
         return Result.success(null);
     }
 
+    @PutMapping("/password")
+    public Result<Void> changePassword(@RequestBody PasswordChangeRequest req) {
+        authService.changePassword(req);
+        return Result.success(null);
+    }
+
     @GetMapping("/me")
     public Result<User> me() {
         User user = SecurityUtil.getCurrentUser();

@@ -172,6 +172,16 @@ export function sendCode(data: { email: string }) {
   return request.post<Result<null>>('/auth/code', data)
 }
 
+export function updatePassword(data: {
+  oldPassword?: string
+  email?: string
+  code?: string
+  newPassword: string
+  confirmPassword: string
+}) {
+  return request.put<Result<null>>('/auth/password', data)
+}
+
 export function checkAdmin() {
   return request.get<Result<boolean>>('/admin/check')
 }
