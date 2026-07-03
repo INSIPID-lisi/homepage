@@ -6,6 +6,7 @@ import { updatePassword, sendCode } from '@/api'
 
 const router = useRouter()
 
+const showPasswordForm = ref(false)
 const passwordMode = ref<'old' | 'code'>('old')
 
 // Password change form
@@ -23,6 +24,10 @@ let timer: ReturnType<typeof setInterval> | null = null
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
+
+function togglePasswordForm() {
+  showPasswordForm.value = !showPasswordForm.value
+}
 
 async function handleSendCode() {
   if (!email.value) {
@@ -136,84 +141,93 @@ function handleLogout() {
   <div class="settings-page">
     <h2 class="page-title">设置</h2>
 
-    <!-- Password Change Section -->
-    <div class="settings-section">
-      <h3 class="section-title">修改密码</h3>
+    <div class="settings-list">
+      <!-- Password Change -->
+      <button class="settings-item" @click="togglePasswordForm">
+        <el-icon :size="20"><Lock /></el-icon>
+        <span class="item-label">修改密码</span>
+        <el-icon
+          class="item-arrow"
+          :class="{ 'item-arrow--open': showPasswordForm }"
+          :size="16"
+        ><ArrowRight /></el-icon>
+      </button>
 
-      <div class="mode-tabs">
-        <span
-          class="mode-tab"
-          :class="{ 'mode-tab--active': passwordMode === 'old' }"
-          @click="passwordMode = 'old'"
-        >旧密码验证</span>
-        <span
-          class="mode-tab"
-          :class="{ 'mode-tab--active': passwordMode === 'code' }"
-          @click="passwordMode = 'code'"
-        >邮箱验证码</span>
-      </div>
-
-      <div class="form">
-        <!-- Mode 1: Old password -->
-        <el-input
-          v-if="passwordMode === 'old'"
-          v-model="oldPassword"
-          type="password"
-          placeholder="旧密码"
-          show-password
-        />
-
-        <!-- Mode 2: Email + Code -->
-        <template v-if="passwordMode === 'code'">
-          <el-input v-model="email" placeholder="邮箱" />
-          <div class="code-row">
-            <el-input v-model="code" placeholder="验证码" class="code-input" />
-            <button
-              class="send-code-btn"
-              :disabled="sendingCode || countdown > 0"
-              @click="handleSendCode"
-            >{{ countdown > 0 ? `${countdown}s` : '获取验证码' }}</button>
+      <Transition name="slide">
+        <div v-show="showPasswordForm" class="password-panel">
+          <div class="mode-tabs">
+            <span
+              class="mode-tab"
+              :class="{ 'mode-tab--active': passwordMode === 'old' }"
+              @click="passwordMode = 'old'"
+            >旧密码验证</span>
+            <span
+              class="mode-tab"
+              :class="{ 'mode-tab--active': passwordMode === 'code' }"
+              @click="passwordMode = 'code'"
+            >邮箱验证码</span>
           </div>
-        </template>
 
-        <!-- Common: new password + confirm -->
-        <el-input
-          v-model="newPassword"
-          type="password"
-          placeholder="新密码"
-          show-password
-        />
-        <el-input
-          v-model="confirmPassword"
-          type="password"
-          placeholder="确认新密码"
-          show-password
-          @keyup.enter="handleChangePassword"
-        />
+          <div class="form">
+            <!-- Mode 1: Old password -->
+            <el-input
+              v-if="passwordMode === 'old'"
+              v-model="oldPassword"
+              type="password"
+              placeholder="旧密码"
+              show-password
+            />
 
-        <button
-          class="submit-btn"
-          :disabled="submitting"
-          @click="handleChangePassword"
-        >{{ submitting ? '处理中...' : '确认修改' }}</button>
-      </div>
-    </div>
+            <!-- Mode 2: Email + Code -->
+            <template v-if="passwordMode === 'code'">
+              <el-input v-model="email" placeholder="邮箱" />
+              <div class="code-row">
+                <el-input v-model="code" placeholder="验证码" class="code-input" />
+                <button
+                  class="send-code-btn"
+                  :disabled="sendingCode || countdown > 0"
+                  @click="handleSendCode"
+                >{{ countdown > 0 ? `${countdown}s` : '获取验证码' }}</button>
+              </div>
+            </template>
 
-    <!-- Account Management -->
-    <div class="settings-section">
-      <h3 class="section-title">账号管理</h3>
-      <div class="settings-list">
-        <button class="settings-item" @click="handleSwitchAccount">
-          <el-icon :size="20"><Switch /></el-icon>
-          <span class="item-label">切换账号</span>
-          <el-icon class="item-arrow" :size="16"><ArrowRight /></el-icon>
-        </button>
-        <button class="settings-item" @click="handleLogout">
-          <el-icon :size="20"><SwitchButton /></el-icon>
-          <span class="item-label">退出登录</span>
-          <el-icon class="item-arrow" :size="16"><ArrowRight /></el-icon>
-        </button>
-      </div>
+            <!-- Common: new password + confirm -->
+            <el-input
+              v-model="newPassword"
+              type="password"
+              placeholder="新密码"
+              show-password
+            />
+            <el-input
+              v-model="confirmPassword"
+              type="password"
+              placeholder="确认新密码"
+              show-password
+              @keyup.enter="handleChangePassword"
+            />
+
+            <button
+              class="submit-btn"
+              :disabled="submitting"
+              @click="handleChangePassword"
+            >{{ submitting ? '处理中...' : '确认修改' }}</button>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Switch account -->
+      <button class="settings-item" @click="handleSwitchAccount">
+        <el-icon :size="20"><Switch /></el-icon>
+        <span class="item-label">切换账号</span>
+        <el-icon class="item-arrow" :size="16"><ArrowRight /></el-icon>
+      </button>
+
+      <!-- Logout -->
+      <button class="settings-item" @click="handleLogout">
+        <el-icon :size="20"><SwitchButton /></el-icon>
+        <span class="item-label">退出登录</span>
+        <el-icon class="item-arrow" :size="16"><ArrowRight /></el-icon>
+      </button>
     </div>
   </div>
 </template>
@@ -232,16 +246,87 @@ function handleLogout() {
   margin-bottom: 32px;
 }
 
-/* ─── sections ─── */
-.settings-section {
-  margin-bottom: 32px;
+/* ─── settings list ─── */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.section-title {
+.settings-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #c8c8c8;
   font-size: 15px;
-  font-weight: 600;
-  color: #999;
-  margin-bottom: 16px;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.settings-item:hover {
+  color: #d4d4d4;
+  background-color: #222;
+  border-color: #3a3a3a;
+}
+
+.settings-item:active {
+  background-color: #252525;
+}
+
+.item-label {
+  flex: 1;
+  text-align: left;
+}
+
+.item-arrow {
+  color: #555;
+  transition: color 0.2s, transform 0.25s ease;
+}
+
+.item-arrow--open {
+  transform: rotate(90deg);
+  color: #888;
+}
+
+.settings-item:hover .item-arrow {
+  color: #888;
+}
+
+/* ─── password panel ─── */
+.password-panel {
+  padding: 16px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  margin-top: -4px;
+}
+
+/* slide transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: opacity 0.25s ease, max-height 0.35s ease, margin-top 0.35s ease;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  opacity: 1;
+  max-height: 500px;
 }
 
 /* ─── mode tabs ─── */
@@ -283,7 +368,7 @@ function handleLogout() {
 }
 
 .form :deep(.el-input__wrapper) {
-  background-color: #1a1a1a;
+  background-color: #0f0f0f;
   border-radius: 8px;
 }
 
@@ -320,7 +405,7 @@ function handleLogout() {
 }
 
 .code-input :deep(.el-input__wrapper) {
-  background-color: #1a1a1a;
+  background-color: #0f0f0f;
   border-radius: 8px;
 }
 
@@ -345,51 +430,5 @@ function handleLogout() {
 .send-code-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* ─── account list ─── */
-.settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.settings-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  color: #c8c8c8;
-  font-size: 15px;
-  cursor: pointer;
-  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
-}
-
-.settings-item:hover {
-  color: #d4d4d4;
-  background-color: #222;
-  border-color: #3a3a3a;
-}
-
-.settings-item:active {
-  background-color: #252525;
-}
-
-.item-label {
-  flex: 1;
-  text-align: left;
-}
-
-.item-arrow {
-  color: #555;
-  transition: color 0.2s;
-}
-
-.settings-item:hover .item-arrow {
-  color: #888;
 }
 </style>
