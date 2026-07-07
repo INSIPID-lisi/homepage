@@ -194,4 +194,30 @@ export function updateSocialLinks(data: { platform: string; url: string; icon?: 
   return request.put<Result<null>>('/social-links', data)
 }
 
+export interface WeatherCurrent {
+  temperature: number
+  humidity: number
+  weatherCode: number
+  weatherDesc: string
+}
+
+export interface DailyForecast {
+  date: string
+  tempMax: number
+  tempMin: number
+  weatherCode: number
+  weatherDesc: string
+}
+
+export interface WeatherData {
+  current: WeatherCurrent
+  daily: DailyForecast[]
+}
+
+export function getWeather() {
+  return request.get<Result<WeatherData>>('/weather', {
+    params: { _t: Date.now() }
+  })
+}
+
 export default request

@@ -191,6 +191,7 @@ homepage/
 | POST | /api/auth/login-code | 验证码登录 |
 | POST | /api/auth/code | 发送邮箱验证码 |
 | PUT | /api/auth/password | 修改密码（旧密码或邮箱验证码） |
+| GET | /api/weather | 获取今日天气与 7 天预报（OpenMeteo） |
 | GET | /api/auth/me | 获取当前用户信息 |
 | GET | /api/admin/check | 检查是否为管理员 |
 

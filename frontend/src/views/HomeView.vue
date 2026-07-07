@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { UserProfile, SocialLink, Result } from '@/api'
-import { getProfile, getSocialLinks, checkAdmin, updateProfile, updateSocialLinks, uploadFile } from '@/api'
+import type { UserProfile, SocialLink, WeatherData, Result } from '@/api'
+import { getProfile, getSocialLinks, checkAdmin, updateProfile, updateSocialLinks, uploadFile, getWeather } from '@/api'
 import { ElMessage } from 'element-plus'
 import ProfileCard from '@/components/ProfileCard.vue'
 import SocialLinks from '@/components/SocialLinks.vue'
+import WeatherCard from '@/components/WeatherCard.vue'
 import FabButton from '@/components/FabButton.vue'
 import { getImageUrl } from '@/utils'
 
 const profile = ref<UserProfile | null>(null)
 const links = ref<SocialLink[]>([])
+const weatherData = ref<WeatherData | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const isAdmin = ref(false)
@@ -39,6 +41,14 @@ onMounted(async () => {
     console.error(e)
   } finally {
     loading.value = false
+  }
+
+  // weather — fire-and-forget, don't block the main content
+  try {
+    const res = await getWeather()
+    weatherData.value = (res as Result<WeatherData>).data
+  } catch (e) {
+    console.warn('Weather fetch failed (backend may be down):', e)
   }
 })
 
@@ -134,6 +144,8 @@ async function handleSave() {
 
 <template>
   <div class="home">
+    <WeatherCard :data="weatherData" />
+
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <template v-else>

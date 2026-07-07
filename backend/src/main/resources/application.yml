@@ -24,10 +24,27 @@ spring:
     password: ${hp.db.password}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
 app:
   upload:
     path: homepage/images
     url-prefix: /uploads
+  weather:
+    latitude: 37.5306
+    longitude: 122.0822
+    cache-minutes: 60
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

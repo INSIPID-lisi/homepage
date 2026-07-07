@@ -3,6 +3,7 @@ package com.homepage.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -22,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private String uploadUrlPrefix;
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         String userHome = System.getProperty("user.home");
         String absolutePath = userHome + File.separator + uploadPath.replace("/", File.separator);
         File dir = new File(absolutePath);
