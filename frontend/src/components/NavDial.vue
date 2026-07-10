@@ -295,7 +295,7 @@ onUnmounted(() => {
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  color: #5b8def;
+  color: rgba(91, 141, 239, 0.8);
   z-index: 3;
   pointer-events: none;
   opacity: 0;
@@ -363,12 +363,12 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-/* ─── stroke layer (white outline) ─── */
+/* ─── stroke layer (outline) ─── */
 .fan-sector__stroke {
   position: absolute;
   inset: 0;
   clip-path: polygon(0 50%, 100% -17%, 100% 117%);
-  background: rgba(212, 212, 212, 0.25);
+  background: rgba(212, 212, 212, 0.15);
   pointer-events: none;
   transition: background 0.25s;
 }
@@ -377,18 +377,20 @@ onUnmounted(() => {
   background: rgba(91, 141, 239, 0.35);
 }
 
-/* ─── solid background with 1.5px inset reveals the stroke ─── */
+/* ─── glass background with 1.5px inset reveals the stroke ─── */
 .fan-sector__bg {
   position: absolute;
   inset: 1.5px;
   clip-path: polygon(0 50%, 100% -17%, 100% 117%);
-  background: #1a1a1a;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   pointer-events: none;
   transition: background 0.25s;
 }
 
 .fan-sector__bg--active {
-  background: linear-gradient(135deg, rgba(91, 141, 239, 0.15), rgba(91, 141, 239, 0.05));
+  background: linear-gradient(135deg, rgba(91, 141, 239, 0.12), rgba(91, 141, 239, 0.03));
 }
 
 .fan-sector__content {
@@ -399,7 +401,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #888;
+  color: rgba(160, 160, 160, 0.75);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -432,7 +434,8 @@ onUnmounted(() => {
 
 .fan-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.03em;
 }
 
 /* ─── center button ─── */
@@ -440,10 +443,10 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(26, 26, 26, 0.95);
+  background: rgba(20, 20, 20, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(212, 212, 212, 0.3);
+  border: 1.5px solid rgba(212, 212, 212, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -457,7 +460,7 @@ onUnmounted(() => {
 }
 
 .dial-compass {
-  color: #999;
+  color: rgba(180, 180, 180, 0.8);
   transition: transform 0.5s ease;
 }
 

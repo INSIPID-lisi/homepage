@@ -176,28 +176,40 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0f0f0f;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .login-card {
   width: 440px;
   padding: 48px 40px;
+  background: rgba(20, 20, 20, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
 }
 
 .welcome-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #e0e0e0;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(224, 224, 224, 0.95);
   text-align: center;
   margin-bottom: 36px;
+  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
 .mode-tabs {
   display: flex;
-  border: 1px solid #2a2a2a;
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 4px;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 3px;
   margin-bottom: 28px;
 }
 
@@ -206,21 +218,22 @@ async function handleSubmit() {
   text-align: center;
   padding: 8px 0;
   font-size: 14px;
-  color: #888;
-  background-color: #1a1a1a;
+  color: rgba(160, 160, 160, 0.8);
   cursor: pointer;
-  transition: color 0.2s, background-color 0.2s;
+  transition: all 0.25s ease;
   user-select: none;
+  border-radius: 7px;
 }
 
 .mode-tab:hover {
   color: #d4d4d4;
-  background-color: #222;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .mode-tab--active {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .form {
@@ -230,8 +243,8 @@ async function handleSubmit() {
 }
 
 .form-input :deep(.el-input__wrapper) {
-  background-color: #1a1a1a;
-  border-radius: 8px;
+  background-color: rgba(26, 26, 26, 0.5) !important;
+  border-radius: 10px;
 }
 
 .mode-toggle {
@@ -239,7 +252,7 @@ async function handleSubmit() {
   justify-content: center;
   gap: 0;
   font-size: 13px;
-  color: #666;
+  color: rgba(102, 102, 102, 0.6);
 }
 
 .mode-toggle span {
@@ -257,7 +270,7 @@ async function handleSubmit() {
 
 .toggle-sep {
   margin: 0 12px;
-  color: #333;
+  color: rgba(51, 51, 51, 0.5);
   cursor: default !important;
 }
 
@@ -271,52 +284,55 @@ async function handleSubmit() {
 }
 
 .code-input :deep(.el-input__wrapper) {
-  background-color: #1a1a1a;
-  border-radius: 8px;
+  background-color: rgba(26, 26, 26, 0.5) !important;
+  border-radius: 10px;
 }
 
 .send-code-btn {
   flex-shrink: 0;
   padding: 0 16px;
-  border-radius: 8px;
-  background-color: #2a2a2a;
+  border-radius: 10px;
+  background: rgba(42, 42, 42, 0.8);
   color: #c8c8c8;
   font-size: 13px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
 }
 
 .send-code-btn:hover:not(:disabled) {
-  background-color: #3a3a3a;
+  background: rgba(58, 58, 58, 0.9);
   color: #d4d4d4;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .send-code-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .submit-btn {
   width: 100%;
   padding: 12px 0;
-  border-radius: 8px;
-  background-color: #5b8def;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #5b8def, #4a7de0);
   color: #fff;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.25s ease;
   margin-top: 4px;
+  letter-spacing: 0.04em;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background-color: #4a7de0;
+  background: linear-gradient(135deg, #6b9df5, #5b8def);
+  box-shadow: 0 4px 20px rgba(91, 141, 239, 0.3);
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 </style>

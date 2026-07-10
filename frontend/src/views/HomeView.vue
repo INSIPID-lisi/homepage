@@ -7,6 +7,7 @@ import ProfileCard from '@/components/ProfileCard.vue'
 import SocialLinks from '@/components/SocialLinks.vue'
 import WeatherCard from '@/components/WeatherCard.vue'
 import FabButton from '@/components/FabButton.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { getImageUrl } from '@/utils'
 
 const profile = ref<UserProfile | null>(null)
@@ -146,7 +147,9 @@ async function handleSave() {
   <div class="home">
     <WeatherCard :data="weatherData" />
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <template v-if="loading">
+      <LoadingSpinner :loading="loading" />
+    </template>
     <div v-else-if="error" class="error">{{ error }}</div>
     <template v-else>
       <ProfileCard :profile="profile" />
@@ -228,23 +231,26 @@ async function handleSave() {
   max-width: 640px;
   margin: 0 auto;
   padding: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .divider {
-  width: 80%;
-  max-width: 320px;
+  width: 60px;
   height: 1px;
-  background-color: #2a2a2a;
-  margin: 8px 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  margin: 12px 0;
 }
 
 .bio {
-  font-size: 15px;
-  color: #999;
+  font-size: 14px;
+  color: rgba(180, 180, 180, 0.8);
   text-align: center;
   line-height: 1.8;
   padding: 16px 24px 48px;
   max-width: 480px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
 }
 
 
@@ -257,8 +263,8 @@ async function handleSave() {
 
 .links-title {
   font-size: 14px;
-  font-weight: 600;
-  color: #e0e0e0;
+  font-weight: 500;
+  color: rgba(224, 224, 224, 0.7);
 }
 
 .link-row {
@@ -287,6 +293,7 @@ async function handleSave() {
   border-radius: 50%;
   overflow: hidden;
   background-color: #111;
+  border: 2px solid rgba(255, 255, 255, 0.06);
 }
 
 .avatar-preview img {
@@ -323,14 +330,14 @@ async function handleSave() {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  border: 1px dashed #3a3a3a;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
   color: #666;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .upload-placeholder:hover {
-  border-color: #5b8def;
+  border-color: rgba(91, 141, 239, 0.5);
   color: #5b8def;
 }
 

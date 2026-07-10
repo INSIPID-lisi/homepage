@@ -107,7 +107,9 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
   position: fixed;
   inset: 0;
   z-index: 150;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .sidebar-popup {
@@ -116,11 +118,13 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
   left: 0;
   width: 220px;
   height: 100vh;
-  background-color: #1a1a1a;
-  border-right: 1px solid #2a2a2a;
+  background: rgba(20, 20, 20, 0.9);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   z-index: 151;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .sidebar-header {
@@ -129,14 +133,15 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
   justify-content: space-between;
   height: 64px;
   padding: 0 16px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .logo-text {
   font-size: 14px;
-  font-weight: 600;
-  color: #d4d4d4;
+  font-weight: 500;
+  color: rgba(212, 212, 212, 0.8);
   white-space: nowrap;
+  letter-spacing: 0.06em;
 }
 
 .header-actions {
@@ -153,14 +158,14 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  color: #888;
-  transition: color 0.2s, background-color 0.2s;
+  color: rgba(136, 136, 136, 0.6);
+  transition: all 0.2s;
 }
 
 .pin-btn:hover,
 .close-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .pin-btn--active {
@@ -177,7 +182,7 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
 
 .sidebar-footer {
   padding: 8px;
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-item {
@@ -185,25 +190,26 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
-  color: #888;
-  transition: color 0.2s, background-color 0.2s;
+  border-radius: 10px;
+  color: rgba(160, 160, 160, 0.8);
+  transition: all 0.2s;
   white-space: nowrap;
   text-decoration: none;
 }
 
 .nav-item:hover {
   color: #d4d4d4;
-  background-color: #252525;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-item--active {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.6);
 }
 
 .nav-label {
   font-size: 14px;
+  letter-spacing: 0.03em;
 }
 
 .logout-btn {
@@ -222,7 +228,7 @@ onUnmounted(() => document.removeEventListener('keydown', onEscape))
 
 .sidebar-slide-enter-active .sidebar-popup,
 .sidebar-slide-leave-active .sidebar-popup {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sidebar-slide-enter-from {

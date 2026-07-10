@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { Post, Result } from '@/api'
 import { getPost, updatePost, deletePost, checkAdmin } from '@/api'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -77,7 +78,9 @@ function formatDate(dateStr: string) {
 
 <template>
   <div class="detail-page">
-    <div v-if="loading" class="loading">加载中...</div>
+    <template v-if="loading">
+      <LoadingSpinner :loading="loading" />
+    </template>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else-if="post" class="detail-content">
       <div class="detail-topbar">
@@ -158,96 +161,115 @@ function formatDate(dateStr: string) {
   padding: 32px 40px;
   max-width: 720px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .detail-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .back-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #888;
+  color: rgba(180, 180, 180, 0.8);
   font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: color 0.2s, background-color 0.2s;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .back-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .settings-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  color: #888;
-  transition: color 0.2s, background-color 0.2s;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: rgba(136, 136, 136, 0.7);
+  transition: all 0.25s ease;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .settings-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .detail-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #e8e8e8;
+  font-size: 26px;
+  font-weight: 500;
+  color: rgba(232, 232, 232, 0.95);
   line-height: 1.4;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  letter-spacing: 0.04em;
 }
 
 .detail-meta {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
 }
 
 .post-type {
   font-size: 12px;
-  padding: 2px 10px;
-  border-radius: 4px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
 }
 
 .post-type--formal {
   color: #5b8def;
-  background-color: rgba(91, 141, 239, 0.1);
+  background: rgba(91, 141, 239, 0.1);
+  border: 1px solid rgba(91, 141, 239, 0.15);
 }
 
 .post-type--random {
   color: #a68bef;
-  background-color: rgba(166, 139, 239, 0.1);
+  background: rgba(166, 139, 239, 0.1);
+  border: 1px solid rgba(166, 139, 239, 0.15);
 }
 
 .post-pinned {
   font-size: 12px;
   color: #e8a838;
-  background-color: rgba(232, 168, 56, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  background: rgba(232, 168, 56, 0.1);
+  border: 1px solid rgba(232, 168, 56, 0.15);
+  padding: 2px 10px;
+  border-radius: 999px;
 }
 
 .detail-date {
   font-size: 13px;
-  color: #666;
+  color: rgba(140, 140, 140, 0.8);
 }
 
 .detail-body {
   font-size: 15px;
-  color: #c8c8c8;
-  line-height: 1.8;
+  color: rgba(212, 212, 212, 0.9);
+  line-height: 1.9;
   white-space: pre-wrap;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  padding: 24px;
+  background: rgba(26, 26, 26, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
 }
 </style>

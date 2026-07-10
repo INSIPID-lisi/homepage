@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import type { Anime, Result } from '@/api'
 import { getAnimeList, createAnime, deleteAnime, uploadFile, checkAdmin } from '@/api'
 import FabButton from '@/components/FabButton.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { getImageUrl } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
@@ -102,9 +103,23 @@ async function handleDelete(id: number, e: Event) {
 
 <template>
   <div class="anime-page">
-    <div v-if="loading" class="loading">加载中...</div>
+    <template v-if="loading">
+      <LoadingSpinner :loading="loading" />
+    </template>
     <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else-if="!animeList.length" class="empty">暂无番剧记录</div>
+    <div v-else-if="!animeList.length" class="empty">
+      <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+        <line x1="7" y1="2" x2="7" y2="22" />
+        <line x1="17" y1="2" x2="17" y2="22" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <line x1="2" y1="7" x2="7" y2="7" />
+        <line x1="2" y1="17" x2="7" y2="17" />
+        <line x1="17" y1="7" x2="22" y2="7" />
+        <line x1="17" y1="17" x2="22" y2="17" />
+      </svg>
+      <span>暂无番剧记录</span>
+    </div>
     <div v-else class="anime-grid">
       <div
         v-for="anime in animeList"
@@ -181,9 +196,11 @@ async function handleDelete(id: number, e: Event) {
 
 <style scoped>
 .anime-page {
-  padding: 24px 32px;
+  padding: 32px 40px;
   max-width: 960px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .anime-grid {
@@ -193,25 +210,29 @@ async function handleDelete(id: number, e: Event) {
 }
 
 .anime-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
+  background: rgba(26, 26, 26, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .anime-card:hover {
-  border-color: #444;
-  background-color: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(32, 32, 32, 0.6);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
 }
 
 .cover-wrapper {
   width: 100%;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -221,36 +242,43 @@ async function handleDelete(id: number, e: Event) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.anime-card:hover .cover-img {
+  transform: scale(1.05);
 }
 
 .cover-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #444;
+  color: rgba(68, 68, 68, 0.5);
 }
 
 .card-body {
-  padding: 12px;
+  padding: 14px;
 }
 
 .anime-name {
   font-size: 14px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: rgba(232, 232, 232, 0.95);
   margin-bottom: 6px;
   line-height: 1.4;
+  letter-spacing: 0.03em;
 }
 
 .latest-review {
   font-size: 12px;
-  color: #888;
+  color: rgba(160, 160, 160, 0.7);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  font-weight: 400;
 }
 
 .delete-btn {
@@ -259,8 +287,10 @@ async function handleDelete(id: number, e: Event) {
   right: 8px;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #ff4d4f;
   display: flex;
   align-items: center;
@@ -274,7 +304,7 @@ async function handleDelete(id: number, e: Event) {
 }
 
 .delete-btn:hover {
-  background-color: rgba(255, 77, 79, 0.2);
+  background: rgba(255, 77, 79, 0.25);
 }
 
 .cover-upload {
@@ -284,10 +314,11 @@ async function handleDelete(id: number, e: Event) {
 .cover-preview {
   position: relative;
   width: 140px;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.5);
   aspect-ratio: 3 / 4;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cover-preview img {
@@ -323,15 +354,15 @@ async function handleDelete(id: number, e: Event) {
   gap: 8px;
   width: 140px;
   aspect-ratio: 3 / 4;
-  border: 1px dashed #3a3a3a;
-  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   color: #666;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .upload-placeholder:hover {
-  border-color: #5b8def;
+  border-color: rgba(91, 141, 239, 0.5);
   color: #5b8def;
 }
 
