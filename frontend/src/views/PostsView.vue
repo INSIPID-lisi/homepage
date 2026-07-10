@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import type { Post, Result } from '@/api'
 import { getPosts, createPost, checkAdmin } from '@/api'
 import FabButton from '@/components/FabButton.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -110,9 +111,19 @@ function formatDate(dateStr: string) {
       />
     </div>
 
-    <div v-if="loading" class="loading">加载中...</div>
+    <template v-if="loading">
+      <LoadingSpinner :loading="loading" />
+    </template>
     <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else-if="!posts.length" class="empty">暂无帖子</div>
+    <div v-else-if="!posts.length" class="empty">
+      <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="9" y1="13" x2="15" y2="13" />
+        <line x1="9" y1="17" x2="13" y2="17" />
+      </svg>
+      <span>暂无帖子</span>
+    </div>
     <div v-else class="post-list">
       <div
         v-for="post in posts"
@@ -177,9 +188,11 @@ function formatDate(dateStr: string) {
 
 <style scoped>
 .posts-page {
-  padding: 24px 32px;
+  padding: 32px 40px;
   max-width: 720px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .top-bar {
@@ -187,40 +200,37 @@ function formatDate(dateStr: string) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .type-tabs {
   display: flex;
-  gap: 0;
-  border: 1px solid #2a2a2a;
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 4px;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 3px;
 }
 
 .type-tab {
   padding: 6px 18px;
   font-size: 13px;
-  color: #888;
-  background-color: #1a1a1a;
+  color: rgba(160, 160, 160, 0.8);
   cursor: pointer;
-  transition: color 0.2s, background-color 0.2s;
-  border-right: 1px solid #2a2a2a;
+  transition: all 0.25s ease;
   user-select: none;
-}
-
-.type-tab:last-child {
-  border-right: none;
+  border-radius: 7px;
 }
 
 .type-tab:hover {
   color: #d4d4d4;
-  background-color: #222;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .type-tab--active {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .search-input {
@@ -228,28 +238,32 @@ function formatDate(dateStr: string) {
 }
 
 .search-input :deep(.el-input__wrapper) {
-  background-color: #1a1a1a;
-  border-radius: 6px;
+  background-color: rgba(26, 26, 26, 0.5) !important;
+  border-radius: 10px;
 }
 
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .post-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 20px;
+  background: rgba(26, 26, 26, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 22px 24px;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .post-card:hover {
-  border-color: #444;
-  background-color: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(32, 32, 32, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .post-card-header {
@@ -262,8 +276,9 @@ function formatDate(dateStr: string) {
 .post-title {
   font-size: 16px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: rgba(232, 232, 232, 0.95);
   line-height: 1.4;
+  letter-spacing: 0.02em;
 }
 
 .post-meta {
@@ -275,38 +290,42 @@ function formatDate(dateStr: string) {
 
 .post-type {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
 }
 
 .post-type--formal {
-  color: #5b8def;
-  background-color: rgba(91, 141, 239, 0.1);
+  color: #7ba5f5;
+  background: rgba(91, 141, 239, 0.1);
+  border: 1px solid rgba(91, 141, 239, 0.15);
 }
 
 .post-type--random {
-  color: #a68bef;
-  background-color: rgba(166, 139, 239, 0.1);
+  color: #b8a3f5;
+  background: rgba(166, 139, 239, 0.1);
+  border: 1px solid rgba(166, 139, 239, 0.15);
 }
 
 .post-pinned {
   font-size: 11px;
-  color: #e8a838;
-  background-color: rgba(232, 168, 56, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  color: #f0c050;
+  background: rgba(232, 168, 56, 0.1);
+  border: 1px solid rgba(232, 168, 56, 0.15);
+  padding: 2px 10px;
+  border-radius: 999px;
 }
 
 .post-date {
   font-size: 12px;
-  color: #666;
+  color: rgba(140, 140, 140, 0.8);
 }
 
 .post-excerpt {
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 14px;
-  color: #999;
-  line-height: 1.6;
+  color: rgba(170, 170, 170, 0.75);
+  line-height: 1.7;
+  font-weight: 400;
 }
-
 </style>

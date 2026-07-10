@@ -5,6 +5,7 @@ import type { AnimeDetail, AnimeReview, Result } from '@/api'
 import { getAnimeDetail, createAnimeReview, updateAnimeReview, deleteAnimeReview, updateAnime, uploadFile, checkAdmin } from '@/api'
 import { getImageUrl } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -150,7 +151,9 @@ async function handleEditAnime() {
 
 <template>
   <div class="detail-page">
-    <div v-if="loading" class="loading">加载中...</div>
+    <template v-if="loading">
+      <LoadingSpinner :loading="loading" />
+    </template>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else-if="anime" class="detail-content">
       <div class="detail-topbar">
@@ -209,7 +212,14 @@ async function handleEditAnime() {
           >添加</el-button>
         </div>
 
-        <div v-if="!anime.reviews.length" class="no-reviews">暂无评价</div>
+        <div v-if="!anime.reviews.length" class="no-reviews">
+          <svg class="no-reviews-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span>暂无评价</span>
+        </div>
         <div v-else class="review-list">
           <div v-for="review in anime.reviews" :key="review.id" class="review-item">
             <div v-if="editingReviewId === review.id" class="review-edit">
@@ -285,66 +295,84 @@ async function handleEditAnime() {
   padding: 32px 40px;
   max-width: 720px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .detail-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .back-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #888;
+  color: rgba(136, 136, 136, 0.7);
   font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: color 0.2s, background-color 0.2s;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .back-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .settings-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  color: #888;
-  transition: color 0.2s, background-color 0.2s;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: rgba(136, 136, 136, 0.7);
+  transition: all 0.25s ease;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .settings-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .anime-header {
   display: flex;
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 28px;
+  margin-bottom: 36px;
+  padding: 24px;
+  background: rgba(26, 26, 26, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
 }
 
 .anime-cover {
-  width: 180px;
+  width: 160px;
   flex-shrink: 0;
   border-radius: 10px;
   overflow: hidden;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.5);
   aspect-ratio: 3 / 4;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .anime-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.anime-cover:hover img {
+  transform: scale(1.03);
 }
 
 .cover-placeholder {
@@ -352,7 +380,7 @@ async function handleEditAnime() {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #444;
+  color: rgba(68, 68, 68, 0.5);
 }
 
 .anime-info {
@@ -362,16 +390,18 @@ async function handleEditAnime() {
 
 .anime-title {
   font-size: 22px;
-  font-weight: 700;
-  color: #e8e8e8;
+  font-weight: 500;
+  color: rgba(232, 232, 232, 0.95);
   margin-bottom: 12px;
+  letter-spacing: 0.06em;
 }
 
 .anime-desc {
   font-size: 14px;
-  color: #999;
+  color: rgba(170, 170, 170, 0.8);
   line-height: 1.7;
   white-space: pre-wrap;
+  font-weight: 400;
 }
 
 .reviews-section {
@@ -380,13 +410,14 @@ async function handleEditAnime() {
 
 .section-title {
   font-size: 16px;
-  font-weight: 600;
-  color: #d4d4d4;
-  margin-bottom: 16px;
+  font-weight: 500;
+  color: rgba(220, 220, 220, 0.9);
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
 }
 
 .add-review {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .add-review-btn {
@@ -394,42 +425,53 @@ async function handleEditAnime() {
 }
 
 .no-reviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   text-align: center;
-  color: #666;
+  color: rgba(102, 102, 102, 0.6);
   font-size: 14px;
-  padding: 24px 0;
+  padding: 40px 0;
+  font-weight: 300;
 }
 
 .review-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .review-item {
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  padding: 16px;
+  background: rgba(26, 26, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 18px;
+  transition: border-color 0.25s ease;
+}
+
+.review-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .review-time {
   font-size: 12px;
-  color: #666;
-  margin-bottom: 6px;
+  color: rgba(102, 102, 102, 0.6);
+  margin-bottom: 8px;
 }
 
 .review-content {
   font-size: 14px;
-  color: #c8c8c8;
+  color: rgba(212, 212, 212, 0.85);
   line-height: 1.7;
   white-space: pre-wrap;
+  font-weight: 400;
 }
 
 .review-actions {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
   justify-content: flex-end;
 }
 
@@ -437,21 +479,21 @@ async function handleEditAnime() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
-  color: #888;
-  transition: color 0.2s, background-color 0.2s;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: rgba(136, 136, 136, 0.6);
+  transition: all 0.2s ease;
 }
 
 .review-action-btn:hover {
   color: #d4d4d4;
-  background-color: #2a2a2a;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .review-action-btn--delete:hover {
   color: #ff4d4f;
-  background-color: rgba(255, 77, 79, 0.1);
+  background: rgba(255, 77, 79, 0.1);
 }
 
 .review-edit-actions {
@@ -468,10 +510,11 @@ async function handleEditAnime() {
 .cover-preview {
   position: relative;
   width: 140px;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.5);
   aspect-ratio: 3 / 4;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .cover-preview img {
@@ -507,15 +550,15 @@ async function handleEditAnime() {
   gap: 8px;
   width: 140px;
   aspect-ratio: 3 / 4;
-  border: 1px dashed #3a3a3a;
-  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   color: #666;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .upload-placeholder:hover {
-  border-color: #5b8def;
+  border-color: rgba(91, 141, 239, 0.5);
   color: #5b8def;
 }
 

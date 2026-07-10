@@ -14,7 +14,7 @@ let timeTimer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
   timeTimer = setInterval(() => {
     now.value = new Date()
-  }, 10000)
+  }, 1000)
 })
 
 onUnmounted(() => {
@@ -66,19 +66,14 @@ const solarTerm = computed(() => {
 
 /* ─── time formatting ─── */
 
-const timeStr = computed(() => {
+const fullDateTime = computed(() => {
+  const y = now.value.getFullYear()
+  const mo = (now.value.getMonth() + 1).toString().padStart(2, '0')
+  const d = now.value.getDate().toString().padStart(2, '0')
   const h = now.value.getHours().toString().padStart(2, '0')
-  const m = now.value.getMinutes().toString().padStart(2, '0')
-  return `${h}:${m}`
-})
-
-const dateStr = computed(() => {
-  const opts: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    month: 'numeric',
-    day: 'numeric'
-  }
-  return now.value.toLocaleDateString('zh-CN', opts)
+  const mi = now.value.getMinutes().toString().padStart(2, '0')
+  const s = now.value.getSeconds().toString().padStart(2, '0')
+  return `${y}-${mo}-${d} ${h}:${mi}:${s}`
 })
 
 /* ─── weather helpers ─── */
@@ -106,14 +101,14 @@ const weatherIcon = computed(() => {
 /* ─── color hint based on weather ─── */
 
 const accentGradient = computed(() => {
-  if (!props.data) return 'linear-gradient(135deg, #2a2a2a, #1a1a1a)'
+  if (!props.data) return 'linear-gradient(135deg, rgba(42,42,42,0.6), rgba(26,26,26,0.4))'
   const code = props.data.current.weatherCode
-  if (code === 0) return 'linear-gradient(135deg, #3d5a80, #1a2a3a)'
-  if (code <= 3) return 'linear-gradient(135deg, #4a4a4a, #2a2a2a)'
-  if (code >= 95) return 'linear-gradient(135deg, #3a1a1a, #2a2a2a)'
-  if (code >= 61 && code <= 82) return 'linear-gradient(135deg, #1a2a3a, #1a1a2a)'
-  if (code >= 71 && code <= 77) return 'linear-gradient(135deg, #2a3a4a, #1a2a2a)'
-  return 'linear-gradient(135deg, #2a2a2a, #1a1a1a)'
+  if (code === 0) return 'linear-gradient(135deg, rgba(61,90,128,0.5), rgba(26,42,58,0.3))'
+  if (code <= 3) return 'linear-gradient(135deg, rgba(74,74,74,0.5), rgba(42,42,42,0.3))'
+  if (code >= 95) return 'linear-gradient(135deg, rgba(58,26,26,0.5), rgba(42,42,42,0.3))'
+  if (code >= 61 && code <= 82) return 'linear-gradient(135deg, rgba(26,42,58,0.5), rgba(26,26,42,0.3))'
+  if (code >= 71 && code <= 77) return 'linear-gradient(135deg, rgba(42,58,74,0.5), rgba(26,42,42,0.3))'
+  return 'linear-gradient(135deg, rgba(42,42,42,0.5), rgba(26,26,26,0.3))'
 })
 
 const tempColor = computed(() => {
@@ -135,28 +130,23 @@ const tempColor = computed(() => {
   >
     <!-- ─── collapsed view ─── -->
     <div class="weather-mini">
-      <div class="mini-left">
-        <span class="mini-temp" :style="{ color: tempColor }">
-          {{ data ? Math.round(data.current.temperature) : '--' }}°
-        </span>
-        <span class="mini-desc">{{ data ? data.current.weatherDesc : '--' }}</span>
+      <div class="mini-datetime">{{ fullDateTime }}</div>
+      <div class="mini-weather" v-if="data">
+        <span class="mini-desc">{{ data.current.weatherDesc }}</span>
+        <span class="mini-range">{{ Math.round(data.daily[0].tempMin) }}° ~ {{ Math.round(data.daily[0].tempMax) }}°</span>
       </div>
-      <div class="mini-right">
-        <span class="mini-time">{{ timeStr }}</span>
-        <span class="mini-icon">{{ weatherIcon }}</span>
+      <div class="mini-weather" v-else>
+        <span class="mini-desc">--</span>
       </div>
     </div>
 
     <!-- ─── expanded view ─── -->
-    <Transition name="fade">
+    <Transition name="weather-fade">
       <div v-show="expanded" class="weather-detail">
         <!-- header row -->
         <div class="detail-header">
-          <div>
-            <span class="detail-location">威海环翠</span>
-            <span class="detail-term">{{ solarTerm }}</span>
-          </div>
-          <div class="detail-time">{{ dateStr }} {{ timeStr }}</div>
+          <span class="detail-location">威海环翠</span>
+          <span class="detail-term">{{ solarTerm }}</span>
         </div>
 
         <!-- current main -->
@@ -164,13 +154,7 @@ const tempColor = computed(() => {
           <span class="main-temp" :style="{ color: tempColor }">
             {{ data ? Math.round(data.current.temperature) : '--' }}°
           </span>
-          <span class="main-desc">{{ data ? data.current.weatherDesc : '--' }}</span>
-        </div>
-
-        <!-- current secondary -->
-        <div class="detail-secondary" v-if="data">
-          <span class="sec-item">湿度 {{ data.current.humidity }}%</span>
-          <span class="sec-item">今日 H {{ Math.round(data.daily[0].tempMax) }}° L {{ Math.round(data.daily[0].tempMin) }}°</span>
+          <span class="sec-humidity" v-if="data">湿度 {{ data.current.humidity }}%</span>
         </div>
 
         <div class="detail-divider" />
@@ -201,65 +185,55 @@ const tempColor = computed(() => {
   right: 20px;
   z-index: 199;
   border-radius: 14px;
-  border: 1px solid rgba(212, 212, 212, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: #d4d4d4;
   cursor: pointer;
   user-select: none;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  min-width: 130px;
+  min-width: 170px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .weather-card:hover {
-  border-color: rgba(212, 212, 212, 0.2);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 /* ─── collapsed ─── */
 .weather-mini {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  gap: 16px;
+  flex-direction: column;
+  padding: 10px 16px;
+  gap: 2px;
 }
 
-.mini-left {
+.mini-datetime {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(210, 210, 210, 0.85);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.mini-weather {
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
-.mini-temp {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  line-height: 1;
-  transition: color 0.3s;
-}
-
 .mini-desc {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e8e8e8;
+  letter-spacing: 0.05em;
+}
+
+.mini-range {
   font-size: 13px;
-  color: #aaa;
-}
-
-.mini-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mini-time {
-  font-size: 12px;
-  color: #888;
-  font-variant-numeric: tabular-nums;
-}
-
-.mini-icon {
-  font-size: 18px;
-  line-height: 1;
-  opacity: 0.7;
+  font-weight: 500;
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /* ─── expanded ─── */
@@ -269,29 +243,23 @@ const tempColor = computed(() => {
 
 .detail-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .detail-location {
   font-size: 16px;
-  font-weight: 600;
-  margin-right: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .detail-term {
-  font-size: 12px;
-  color: #888;
-  background: rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  color: rgba(136, 136, 136, 0.7);
+  background: rgba(255, 255, 255, 0.04);
   padding: 2px 8px;
   border-radius: 4px;
-}
-
-.detail-time {
-  font-size: 12px;
-  color: #888;
-  font-variant-numeric: tabular-nums;
 }
 
 .detail-main {
@@ -303,33 +271,20 @@ const tempColor = computed(() => {
 
 .main-temp {
   font-size: 44px;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: -1px;
   line-height: 1;
   transition: color 0.3s;
 }
 
-.main-desc {
-  font-size: 16px;
-  color: #bbb;
-}
-
-.detail-secondary {
-  display: flex;
-  gap: 20px;
+.sec-humidity {
   font-size: 13px;
-  color: #999;
-}
-
-.sec-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  color: rgba(153, 153, 153, 0.7);
 }
 
 .detail-divider {
   height: 1px;
-  background: rgba(212, 212, 212, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   margin: 12px 0;
 }
 
@@ -350,7 +305,7 @@ const tempColor = computed(() => {
 
 .daily-date {
   width: 40px;
-  color: #888;
+  color: rgba(136, 136, 136, 0.6);
   flex-shrink: 0;
 }
 
@@ -358,13 +313,13 @@ const tempColor = computed(() => {
   width: 20px;
   font-size: 14px;
   text-align: center;
-  opacity: 0.6;
+  opacity: 0.5;
   flex-shrink: 0;
 }
 
 .daily-desc {
   flex: 1;
-  color: #aaa;
+  color: rgba(170, 170, 170, 0.7);
 }
 
 .daily-temps {
@@ -375,35 +330,35 @@ const tempColor = computed(() => {
 
 .daily-high {
   color: #d4d4d4;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .daily-low {
-  color: #777;
+  color: rgba(119, 119, 119, 0.6);
 }
 
 .detail-hint {
   text-align: center;
   font-size: 11px;
-  color: #555;
+  color: rgba(85, 85, 85, 0.5);
   margin-top: 10px;
 }
 
 /* ─── transition ─── */
-.fade-enter-active,
-.fade-leave-active {
+.weather-fade-enter-active,
+.weather-fade-leave-active {
   transition: opacity 0.25s ease, max-height 0.35s ease;
   overflow: hidden;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.weather-fade-enter-from,
+.weather-fade-leave-to {
   opacity: 0;
   max-height: 0;
 }
 
-.fade-enter-to,
-.fade-leave-from {
+.weather-fade-enter-to,
+.weather-fade-leave-from {
   opacity: 1;
   max-height: 500px;
 }

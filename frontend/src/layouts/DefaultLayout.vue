@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import NavDial from '@/components/NavDial.vue'
 import SidebarPopup from '@/components/SidebarPopup.vue'
+import BackToTop from '@/components/BackToTop.vue'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 useKeyboardShortcuts()
@@ -9,6 +10,7 @@ useKeyboardShortcuts()
 const sidebarVisible = ref(false)
 const sidebarPinned = ref(localStorage.getItem('sidebarPinned') === 'true')
 const showNavDial = computed(() => !sidebarPinned.value && !sidebarVisible.value)
+const contentRef = ref<HTMLElement | null>(null)
 
 function onLongPress() {
   if (sidebarPinned.value) return
@@ -41,9 +43,10 @@ function onTogglePin(pinned: boolean) {
       @close="closeSidebar"
       @toggle-pin="onTogglePin"
     />
-    <div class="content" :class="{ 'content--with-sidebar': sidebarVisible }">
+    <BackToTop :scroll-container="contentRef" />
+    <div ref="contentRef" class="content" :class="{ 'content--with-sidebar': sidebarVisible }">
       <router-view v-slot="{ Component }">
-        <Transition name="page-fade" mode="out-in">
+        <Transition name="page" mode="out-in">
           <component :is="Component" />
         </Transition>
       </router-view>
@@ -55,30 +58,20 @@ function onTogglePin(pinned: boolean) {
 .layout {
   width: 100vw;
   height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .content {
   height: 100vh;
   overflow-y: auto;
-  transition: margin-left 0.3s ease, width 0.3s ease;
+  overflow-x: hidden;
+  transition: margin-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .content--with-sidebar {
   margin-left: 220px;
   width: calc(100vw - 220px);
-}
-
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.page-fade-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-fade-leave-to {
-  opacity: 0;
 }
 </style>
