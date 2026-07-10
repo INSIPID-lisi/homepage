@@ -14,7 +14,7 @@ let timeTimer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
   timeTimer = setInterval(() => {
     now.value = new Date()
-  }, 10000)
+  }, 1000)
 })
 
 onUnmounted(() => {
@@ -66,19 +66,14 @@ const solarTerm = computed(() => {
 
 /* ─── time formatting ─── */
 
-const timeStr = computed(() => {
+const fullDateTime = computed(() => {
+  const y = now.value.getFullYear()
+  const mo = (now.value.getMonth() + 1).toString().padStart(2, '0')
+  const d = now.value.getDate().toString().padStart(2, '0')
   const h = now.value.getHours().toString().padStart(2, '0')
-  const m = now.value.getMinutes().toString().padStart(2, '0')
-  return `${h}:${m}`
-})
-
-const dateStr = computed(() => {
-  const opts: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    month: 'numeric',
-    day: 'numeric'
-  }
-  return now.value.toLocaleDateString('zh-CN', opts)
+  const mi = now.value.getMinutes().toString().padStart(2, '0')
+  const s = now.value.getSeconds().toString().padStart(2, '0')
+  return `${y}-${mo}-${d} ${h}:${mi}:${s}`
 })
 
 /* ─── weather helpers ─── */
@@ -135,15 +130,13 @@ const tempColor = computed(() => {
   >
     <!-- ─── collapsed view ─── -->
     <div class="weather-mini">
-      <div class="mini-left">
-        <span class="mini-temp" :style="{ color: tempColor }">
-          {{ data ? Math.round(data.current.temperature) : '--' }}°
-        </span>
-        <span class="mini-desc">{{ data ? data.current.weatherDesc : '--' }}</span>
+      <div class="mini-datetime">{{ fullDateTime }}</div>
+      <div class="mini-weather" v-if="data">
+        <span class="mini-desc">{{ data.current.weatherDesc }}</span>
+        <span class="mini-range">{{ Math.round(data.daily[0].tempMin) }}° ~ {{ Math.round(data.daily[0].tempMax) }}°</span>
       </div>
-      <div class="mini-right">
-        <span class="mini-time">{{ timeStr }}</span>
-        <span class="mini-icon">{{ weatherIcon }}</span>
+      <div class="mini-weather" v-else>
+        <span class="mini-desc">--</span>
       </div>
     </div>
 
@@ -152,11 +145,8 @@ const tempColor = computed(() => {
       <div v-show="expanded" class="weather-detail">
         <!-- header row -->
         <div class="detail-header">
-          <div>
-            <span class="detail-location">威海环翠</span>
-            <span class="detail-term">{{ solarTerm }}</span>
-          </div>
-          <div class="detail-time">{{ dateStr }} {{ timeStr }}</div>
+          <span class="detail-location">威海环翠</span>
+          <span class="detail-term">{{ solarTerm }}</span>
         </div>
 
         <!-- current main -->
@@ -164,13 +154,7 @@ const tempColor = computed(() => {
           <span class="main-temp" :style="{ color: tempColor }">
             {{ data ? Math.round(data.current.temperature) : '--' }}°
           </span>
-          <span class="main-desc">{{ data ? data.current.weatherDesc : '--' }}</span>
-        </div>
-
-        <!-- current secondary -->
-        <div class="detail-secondary" v-if="data">
-          <span class="sec-item">湿度 {{ data.current.humidity }}%</span>
-          <span class="sec-item">今日 H {{ Math.round(data.daily[0].tempMax) }}° L {{ Math.round(data.daily[0].tempMin) }}°</span>
+          <span class="sec-humidity" v-if="data">湿度 {{ data.current.humidity }}%</span>
         </div>
 
         <div class="detail-divider" />
@@ -209,7 +193,7 @@ const tempColor = computed(() => {
   user-select: none;
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  min-width: 130px;
+  min-width: 170px;
 }
 
 .weather-card:hover {
@@ -219,47 +203,36 @@ const tempColor = computed(() => {
 /* ─── collapsed ─── */
 .weather-mini {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  gap: 16px;
+  flex-direction: column;
+  padding: 8px 14px;
+  gap: 2px;
 }
 
-.mini-left {
+.mini-datetime {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c8c8c8;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.mini-weather {
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
-.mini-temp {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  line-height: 1;
-  transition: color 0.3s;
-}
-
 .mini-desc {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0e0e0;
+  letter-spacing: 0.3px;
+}
+
+.mini-range {
   font-size: 13px;
-  color: #aaa;
-}
-
-.mini-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mini-time {
-  font-size: 12px;
-  color: #888;
-  font-variant-numeric: tabular-nums;
-}
-
-.mini-icon {
-  font-size: 18px;
-  line-height: 1;
-  opacity: 0.7;
+  font-weight: 500;
+  color: #999;
 }
 
 /* ─── expanded ─── */
@@ -269,15 +242,14 @@ const tempColor = computed(() => {
 
 .detail-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .detail-location {
   font-size: 16px;
   font-weight: 600;
-  margin-right: 10px;
 }
 
 .detail-term {
@@ -286,12 +258,6 @@ const tempColor = computed(() => {
   background: rgba(255, 255, 255, 0.06);
   padding: 2px 8px;
   border-radius: 4px;
-}
-
-.detail-time {
-  font-size: 12px;
-  color: #888;
-  font-variant-numeric: tabular-nums;
 }
 
 .detail-main {
@@ -309,22 +275,9 @@ const tempColor = computed(() => {
   transition: color 0.3s;
 }
 
-.main-desc {
-  font-size: 16px;
-  color: #bbb;
-}
-
-.detail-secondary {
-  display: flex;
-  gap: 20px;
+.sec-humidity {
   font-size: 13px;
   color: #999;
-}
-
-.sec-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .detail-divider {
