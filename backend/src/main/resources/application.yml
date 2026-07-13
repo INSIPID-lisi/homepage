@@ -38,6 +38,11 @@ spring:
           enabled: true
 
 app:
+  security:
+    login:
+      max-attempts: 5
+      attempt-window-seconds: 900
+      lock-duration-seconds: 1800
   upload:
     path: homepage/images
     url-prefix: /uploads

@@ -2,6 +2,8 @@ package com.homepage.controller;
 
 import com.homepage.dto.*;
 import com.homepage.entity.User;
+import com.homepage.security.annotation.RateLimit;
+import com.homepage.security.annotation.RateLimitType;
 import com.homepage.service.AuthService;
 import com.homepage.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +17,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
+    @RateLimit(key = "", windowSeconds = 300, maxRequests = 3, type = RateLimitType.IP_BASED)
     public Result<AuthResponse> register(@RequestBody RegisterRequest req) {
         return Result.success(authService.register(req));
     }
 
     @PostMapping("/login")
+    @RateLimit(key = "", windowSeconds = 60, maxRequests = 10, type = RateLimitType.IP_BASED)
     public Result<AuthResponse> login(@RequestBody LoginRequest req) {
         return Result.success(authService.login(req));
     }
@@ -30,6 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/code")
+    @RateLimit(key = "", windowSeconds = 60, maxRequests = 3, type = RateLimitType.IP_BASED)
     public Result<Void> sendCode(@RequestBody CodeLoginRequest req) {
         authService.sendCode(req.getEmail());
         return Result.success(null);

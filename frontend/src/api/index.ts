@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const request = axios.create({
   baseURL: '/api',
@@ -48,7 +49,20 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.error('Request failed:', error.message)
+    if (error.response) {
+      const status = error.response.status
+      const data = error.response.data
+      const msg = data?.message || 'request failed'
+      if (status === 423) {
+        ElMessage.error(msg || 'account locked, please try later')
+      } else if (status === 429) {
+        ElMessage.warning(msg || 'too many requests, please slow down')
+      } else {
+        console.error('Request failed:', status, msg)
+      }
+    } else {
+      console.error('Request failed:', error.message)
+    }
     return Promise.reject(error)
   }
 )

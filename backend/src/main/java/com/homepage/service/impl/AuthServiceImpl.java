@@ -5,13 +5,23 @@ import com.homepage.entity.User;
 import com.homepage.exception.BusinessException;
 import com.homepage.exception.ErrorCode;
 import com.homepage.mapper.UserMapper;
+import com.homepage.security.event.AccountLockedEvent;
+import com.homepage.security.event.LoginFailureEvent;
+import com.homepage.security.annotation.RateLimit;
+import com.homepage.security.annotation.RateLimitType;
+import com.homepage.security.event.LoginSuccessEvent;
+import com.homepage.security.service.LoginAttemptService;
 import com.homepage.service.AuthService;
 import com.homepage.service.EmailService;
 import com.homepage.util.JwtUtil;
 import com.homepage.util.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 
@@ -23,8 +33,11 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @RateLimit(key = "#email", windowSeconds = 60, maxRequests = 1, type = RateLimitType.PARAM_BASED)
     public void sendCode(String email) {
         if (email == null || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w{2,}$")) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "invalid email");
@@ -78,14 +91,28 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "email and password required");
         }
 
+        String ip = getClientIp();
+
+        if (loginAttemptService.isLocked(email)) {
+            eventPublisher.publishEvent(new LoginFailureEvent(this, email, ip, "account locked", 0));
+            throw new BusinessException(ErrorCode.ACCOUNT_LOCKED, "account locked due to too many failed attempts, please try later");
+        }
+
         User user = userMapper.selectByEmail(email);
-        if (user == null) {
+        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
+            loginAttemptService.recordFailedAttempt(email);
+            int remaining = loginAttemptService.getRemainingAttempts(email);
+            eventPublisher.publishEvent(new LoginFailureEvent(this, email, ip, "invalid credentials", remaining));
+
+            if (loginAttemptService.isLocked(email)) {
+                eventPublisher.publishEvent(new AccountLockedEvent(this, email, ip, 1800));
+            }
+
             throw new BusinessException(ErrorCode.BAD_REQUEST, "invalid email or password");
         }
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "invalid email or password");
-        }
+        loginAttemptService.recordSuccessfulAttempt(email);
+        eventPublisher.publishEvent(new LoginSuccessEvent(this, email, ip));
 
         String token = jwtUtil.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getRole());
@@ -149,5 +176,20 @@ public class AuthServiceImpl implements AuthService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userMapper.updateById(user);
+    }
+
+    private String getClientIp() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) return "unknown";
+        HttpServletRequest request = attrs.getRequest();
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isBlank()) {
+            return xRealIp.trim();
+        }
+        return request.getRemoteAddr();
     }
 }
